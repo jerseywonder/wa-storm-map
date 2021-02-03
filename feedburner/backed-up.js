@@ -12,7 +12,7 @@ var fs = require('fs');
 
 var app = {
 
-  	xml: (url="https://www.emergency.wa.gov.au/data/incident_FCAD.rss") => {
+  	xml: (url="https://www.emergency.wa.gov.au/data/message.rss") => {
 
     fetch(url)
         .then(res => res.text())
@@ -32,17 +32,17 @@ var app = {
 
         //console.log(json.rss.channel[0].item[i].title) //["georss:alertLevel"]
 
-        //app.wrangle(json.rss.channel[0].item[i]["georss:polygon"][0], current)
-
         if (json.rss.channel[0].item[i]["georss:polygon"]!=undefined) {
 
-          app.wrangle(json.rss.channel[0].item[i]["georss:polygon"][0], current)
+          //console.log(json.rss.channel[0].item[i]["georss:polygon"].length)
 
-          current++
+          for (var feed of json.rss.channel[0].item[i]["georss:polygon"]) {
 
-        } else {
+            app.wrangle(feed, current)
 
-          //console.log(json.rss.channel[0].item[i])
+            current++
+
+          }
 
         }
 
@@ -86,7 +86,12 @@ var app = {
 
     points.push(points[0])
 
-    var polygon = turf.multiPoint(points, { name: 'poly6' });
+    var polygon = turf.polygon([points], { name: 'poly6' });
+
+    var options = {tolerance: 0.01, highQuality: false};
+
+    var simplified = turf.simplify(polygon, options);
+
 
     app.writer(polygon, index)
 
